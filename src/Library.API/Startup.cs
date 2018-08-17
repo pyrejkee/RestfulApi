@@ -70,6 +70,8 @@ namespace Library.API
                 cfg.CreateMap<Entities.Book, Models.BookDto>();
 
                 cfg.CreateMap<Models.AuthorForCreationDto, Author>();
+
+                cfg.CreateMap<Models.BookForCreationDto, Book>();
             });
 
             libraryContext.EnsureSeedDataForContext();
