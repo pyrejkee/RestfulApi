@@ -7,6 +7,7 @@ using Library.API.Services;
 using Library.API.Entities;
 using Library.API.Helpers;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.EntityFrameworkCore;
 
 namespace Library.API
@@ -24,7 +25,11 @@ namespace Library.API
         // For more information on how to configure your application, visit http://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc();
+            services.AddMvc(setupAction =>
+            {
+                setupAction.ReturnHttpNotAcceptable = true;
+                setupAction.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter());
+            });
 
             // register the DbContext on the container, getting the connection string from
             // appSettings (note: use this during development; in a production environment,
