@@ -123,6 +123,16 @@ namespace Library.API.Controllers
                 return BadRequest();
             }
 
+            if(book.Description == book.Title)
+            {
+                ModelState.AddModelError(nameof(BookForUpdateDto), "The provided description shouldn't be the same as title.");
+            }
+
+            if(!ModelState.IsValid)
+            {
+                return new UnprocessableEntityObjectResult(ModelState);
+            }
+
             if (!_libraryRepository.AuthorExists(authorId))
             {
                 return NotFound();
