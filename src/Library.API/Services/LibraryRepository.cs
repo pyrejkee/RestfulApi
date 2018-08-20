@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Library.API.Helpers;
 
 namespace Library.API.Services
 {
@@ -64,9 +65,31 @@ namespace Library.API.Services
             return _context.Authors.FirstOrDefault(a => a.Id == authorId);
         }
 
-        public IEnumerable<Author> GetAuthors()
+        public PagedList<Author> GetAuthors(AuthorResourceParameters authorResourceParameters)
         {
-            return _context.Authors.OrderBy(a => a.FirstName).ThenBy(a => a.LastName);
+            var collectionBeforePaging = _context.Authors
+                .OrderBy(a => a.FirstName)
+                .ThenBy(a => a.LastName)
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(authorResourceParameters.Genre))
+            {
+                var genreForWhereClause = authorResourceParameters.Genre.Trim().ToLowerInvariant();
+                collectionBeforePaging =
+                    collectionBeforePaging.Where(a => a.Genre.ToLowerInvariant() == genreForWhereClause);
+            }
+
+            if (!string.IsNullOrEmpty(authorResourceParameters.SearchQuery))
+            {
+                var searchQueryForWhereClause = authorResourceParameters.SearchQuery.Trim().ToLowerInvariant();
+                collectionBeforePaging = collectionBeforePaging
+                    .Where(a => a.Genre.ToLowerInvariant().Contains(searchQueryForWhereClause)
+                                || a.FirstName.ToLowerInvariant().Contains(searchQueryForWhereClause)
+                                || a.LastName.ToLowerInvariant().Contains(searchQueryForWhereClause));
+            }
+
+            return PagedList<Author>.Create(collectionBeforePaging,
+                    authorResourceParameters.PageNumber, authorResourceParameters.PageSize);
         }
 
         public IEnumerable<Author> GetAuthors(IEnumerable<Guid> authorIds)
