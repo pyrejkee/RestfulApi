@@ -58,6 +58,7 @@ namespace Library.API.Controllers
                     return _urlHelper.Link("GetAuthors",
                         new
                         {
+                            searchQuery = authorResourceParameters.SearchQuery,
                             genre = authorResourceParameters.Genre,
                             pageNumber = authorResourceParameters.PageNumber - 1,
                             pageSize = authorResourceParameters.PageSize
@@ -66,6 +67,7 @@ namespace Library.API.Controllers
                     return _urlHelper.Link("GetAuthors",
                         new
                         {
+                            searchQuery = authorResourceParameters.SearchQuery,
                             genre = authorResourceParameters.Genre,
                             pageNumber = authorResourceParameters.PageNumber + 1,
                             pageSize = authorResourceParameters.PageSize
@@ -74,6 +76,7 @@ namespace Library.API.Controllers
                     return _urlHelper.Link("GetAuthors",
                         new
                         {
+                            searchQuery = authorResourceParameters.SearchQuery,
                             genre = authorResourceParameters.Genre,
                             pageNumber = authorResourceParameters.PageNumber,
                             pageSize = authorResourceParameters.PageSize
