@@ -15,17 +15,34 @@ namespace Library.API.Controllers
     {
         private readonly ILibraryRepository _libraryRepository;
         private readonly IUrlHelper _urlHelper;
+        private readonly IPropertyMappingService _propertyMappingService;
+        private readonly ITypeHelperService _typeHelperService;
 
         public AuthorsController(ILibraryRepository libraryRepository,
-            IUrlHelper urlHelper)
+            IUrlHelper urlHelper,
+            IPropertyMappingService propertyMappingService,
+            ITypeHelperService typeHelperService)
         {
             _libraryRepository = libraryRepository;
             _urlHelper = urlHelper;
+            _propertyMappingService = propertyMappingService;
+            _typeHelperService = typeHelperService;
         }
 
         [HttpGet(Name = "GetAuthors")]
         public IActionResult GetAuthors(AuthorResourceParameters authorResourceParameters)
         {
+            if(!_propertyMappingService.ValidMappingExistsFor<AuthorDto, Author>
+                (authorResourceParameters.OrderBy))
+            {
+                return BadRequest();
+            }
+
+            if(!_typeHelperService.TypeHasProperties<AuthorDto>(authorResourceParameters.Fields))
+            {
+                return BadRequest();
+            }
+
             var authorsFromRepo = _libraryRepository.GetAuthors(authorResourceParameters);
 
             var previousPageLink = authorsFromRepo.HasPrevious
@@ -46,7 +63,7 @@ namespace Library.API.Controllers
 
             var authors = Mapper.Map<IEnumerable<AuthorDto>>(authorsFromRepo);
 
-            return Ok(authors);
+            return Ok(authors.ShapeData(authorResourceParameters.Fields));
         }
 
         private string CreateAuthorResourceUri(AuthorResourceParameters authorResourceParameters,
@@ -58,6 +75,8 @@ namespace Library.API.Controllers
                     return _urlHelper.Link("GetAuthors",
                         new
                         {
+                            fields = authorResourceParameters.Fields,
+                            orderBy = authorResourceParameters.OrderBy,
                             searchQuery = authorResourceParameters.SearchQuery,
                             genre = authorResourceParameters.Genre,
                             pageNumber = authorResourceParameters.PageNumber - 1,
@@ -67,6 +86,8 @@ namespace Library.API.Controllers
                     return _urlHelper.Link("GetAuthors",
                         new
                         {
+                            fields = authorResourceParameters.Fields,
+                            orderBy = authorResourceParameters.OrderBy,
                             searchQuery = authorResourceParameters.SearchQuery,
                             genre = authorResourceParameters.Genre,
                             pageNumber = authorResourceParameters.PageNumber + 1,
@@ -76,6 +97,8 @@ namespace Library.API.Controllers
                     return _urlHelper.Link("GetAuthors",
                         new
                         {
+                            fields = authorResourceParameters.Fields,
+                            orderBy = authorResourceParameters.OrderBy,
                             searchQuery = authorResourceParameters.SearchQuery,
                             genre = authorResourceParameters.Genre,
                             pageNumber = authorResourceParameters.PageNumber,
@@ -85,8 +108,13 @@ namespace Library.API.Controllers
         }
 
         [HttpGet("{id}", Name = "GetAuthor")]
-        public IActionResult GetAuthor(Guid id)
+        public IActionResult GetAuthor(Guid id, [FromQuery] string fields)
         {
+            if(!_typeHelperService.TypeHasProperties<AuthorDto>(fields))
+            {
+                return BadRequest();
+            }
+
             var authorFromRepo = _libraryRepository.GetAuthor(id);
 
             if (authorFromRepo == null)
@@ -96,7 +124,7 @@ namespace Library.API.Controllers
 
             var author = Mapper.Map<AuthorDto>(authorFromRepo);
 
-            return Ok(author);
+            return Ok(author.ShapeData(fields));
         }
 
         [HttpPost]
