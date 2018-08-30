@@ -15,6 +15,6 @@ namespace Library.API
             WebHost.CreateDefaultBuilder(args)
                 .UseStartup<Startup>()
                 .UseNLog()
-                .Build();        
+                .Build();
     }
 }

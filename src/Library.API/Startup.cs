@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using System.Linq;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -36,6 +37,23 @@ namespace Library.API
                 setupAction.ReturnHttpNotAcceptable = true;
                 setupAction.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter());
                 setupAction.InputFormatters.Add(new XmlDataContractSerializerInputFormatter());
+
+                var xmlDataContractSerializerInputFormatter = new XmlDataContractSerializerInputFormatter();
+                xmlDataContractSerializerInputFormatter.SupportedMediaTypes.Add("application/vnd.marvin.authorwithdateofdeath.full+xml");
+                setupAction.InputFormatters.Add(xmlDataContractSerializerInputFormatter);
+
+                var jsonInputFormatter = setupAction.InputFormatters.OfType<JsonInputFormatter>().FirstOrDefault();
+                if (jsonInputFormatter != null)
+                {
+                    jsonInputFormatter.SupportedMediaTypes.Add("application/vnd.marvin.author.full+json");
+                    jsonInputFormatter.SupportedMediaTypes.Add("application/vnd.marvin.authorwithdateofdeath.full+json");
+                }
+
+                var jsonOutputFormatter = setupAction.OutputFormatters.OfType<JsonOutputFormatter>().FirstOrDefault();
+                if (jsonOutputFormatter != null)
+                {
+                    jsonOutputFormatter.SupportedMediaTypes.Add("application/vnd.marvin.hateoas+json");
+                }
 
             })
             .AddJsonOptions(options =>
@@ -97,11 +115,13 @@ namespace Library.API
             {
                 cfg.CreateMap<Entities.Author, Models.AuthorDto>()
                     .ForMember(dest => dest.Name, opt => opt.MapFrom(src => $"{src.FirstName} {src.LastName}"))
-                    .ForMember(dest => dest.Age, opt => opt.MapFrom(src => src.DateOfBirth.GetCurrentAge()));
+                    .ForMember(dest => dest.Age, opt => opt.MapFrom(src => src.DateOfBirth.GetCurrentAge(src.DateOfDeath)));
 
                 cfg.CreateMap<Entities.Book, Models.BookDto>();
 
                 cfg.CreateMap<Models.AuthorForCreationDto, Author>();
+
+                cfg.CreateMap<Models.AuthorForCreationWithDateOfDeathDto, Author>();
 
                 cfg.CreateMap<Models.BookForCreationDto, Book>();
 
