@@ -79,6 +79,18 @@ namespace Library.API
 
             services.AddTransient<IPropertyMappingService, PropertyMappingService>();
             services.AddTransient<ITypeHelperService, TypeHelperService>();
+
+            services.AddHttpCacheHeaders(
+                (expirationModelOptions) =>
+                {
+                    expirationModelOptions.MaxAge = 600;
+                },
+                (validationModelOptions) =>
+                {
+                    validationModelOptions.AddMustRevalidate = true;
+                });
+
+            services.AddResponseCaching();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -131,6 +143,9 @@ namespace Library.API
             });
 
             libraryContext.EnsureSeedDataForContext();
+
+            app.UseResponseCaching();
+            app.UseHttpCacheHeaders();
 
             app.UseMvc(); 
         }
